@@ -1,0 +1,22 @@
+{
+  "name": "opencode-issue",
+  "version": "1.0.0",
+  "description": "OpenCode plugin for creating issues with browser preview and translation",
+  "main": "dist/index.js",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "link": "npm link && cd ~/.opencode && npm link opencode-issue-plugin"
+  },
+  "keywords": ["opencode", "plugin", "issue", "github", "gitlab"],
+  "license": "MIT",
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.18.29"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}
