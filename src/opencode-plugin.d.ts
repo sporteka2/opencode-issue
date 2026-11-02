@@ -11,7 +11,8 @@ declare module "@opencode/plugin" {
     /** Каталог текущего проекта. */
     location: { directory: string; workspaceID?: string; project?: { id: string; directory: string } }
     /** Генерация текста моделью (дубликаты/перевод). */
-    generate: { text(input: { model?: { providerID: string; id: string }; prompt: string }): Promise<IssueGenerationResult> }
+    /** model обязателен в payload — при его отсутствии вызов падает. */
+    generate: { text(input: { model: { providerID: string; id: string }; prompt: string }): Promise<IssueGenerationResult> }
     /** Запрос разрешения у пользователя. */
     permission: { assert(input: Record<string, unknown>): Promise<void> }
     /** Регистрация инструментов. */

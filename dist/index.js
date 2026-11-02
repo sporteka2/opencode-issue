@@ -17,7 +17,6 @@ export default Plugin.define({
             return stdout;
         }
         // Значения по умолчанию: без переменной окружения инструмент тоже работает.
-        // checkModel не задан — generate.text возьмёт текущую базовую модель сервера.
         const DEFAULT_ISSUE_OPTIONS = {
             duplicateCheck: true,
             checkClosed: true,
@@ -137,6 +136,30 @@ export default Plugin.define({
             ]);
             return JSON.parse(out);
         }
+        // Запасная модель, если base-модель сервера не определилась.
+        const FALLBACK_CHECK_MODEL = { providerID: "nvidia", id: "deepseek-ai/deepseek-v4.1-flash" };
+        /**
+         * Модель для AI-проверки дубликатов.
+         * Приоритет: OPENCODE_ISSUE_CONFIG.checkModel → базовая модель сервера
+         * (её же применяет generate.text, когда в сессии нет явного выбора) → запасная.
+         */
+        async function resolveCheckModel(options) {
+            if (options.checkModel)
+                return options.checkModel;
+            try {
+                const d = await ctx.model.default();
+                // API отдаёт обёртку { location, data }
+                const m = d?.data ?? d;
+                const providerID = m?.providerID ?? m?.provider?.id;
+                const id = m?.id ?? m?.modelID ?? m?.model?.id;
+                if (providerID && id)
+                    return { providerID, id };
+            }
+            catch (e) {
+                console.error("[opencode-issue] Could not resolve default model:", e);
+            }
+            return FALLBACK_CHECK_MODEL;
+        }
         async function loadDuplicateCheckInstruction() {
             try {
                 const instruction = readFileSync(join(directory, ".opencode/instructions/issue-duplicate-check.md"), "utf-8");
@@ -179,12 +202,10 @@ ${issuesBlock}
 Новое ишью:
 Заголовок: ${title}
 Описание: ${body}`;
-                // Если модель не задана в OPENCODE_ISSUE_CONFIG, не передаём model:
-                // generate.text использует текущую базовую модель сервера.
-                const result = await ctx.generate.text({
-                    ...(options.checkModel ? { model: options.checkModel } : {}),
-                    prompt,
-                });
+                // generate.text требует model в payload, поэтому резолвим модель явно:
+                // переопределение из конфига → базовая модель сервера → запасная.
+                const model = await resolveCheckModel(options);
+                const result = await ctx.generate.text({ model, prompt });
                 // Модель иногда оборачивает ответ в ```json ... ```
                 const raw = result.text.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
                 return JSON.parse(raw);
