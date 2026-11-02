@@ -569,7 +569,7 @@ ${issuesBlock}
       editor.add({
         name: "issue_create",
         description:
-          "Create a GitHub/Codeberg issue from a Russian title and body. Shows a browser preview, optionally checks for duplicates with AI and translates the issue into the submit language.",
+          "Create a GitHub/Codeberg issue from a Russian title and body. Shows a browser preview, optionally checks for duplicates with AI and translates the issue into the submit language. Use this whenever the user asks to create, prepare, open or file an issue — in Russian ('создай ишью', 'подготовь ишью', 'заведи тикет', 'оформи баг') or in English — even if they did not name the tool. Prefer this over writing the issue text in the reply. If the repository is unknown, ask the user which one instead of guessing.",
         input: {
           type: "object",
           properties: {
@@ -596,7 +596,7 @@ ${issuesBlock}
           )
           if (!repoInfo) {
             throw new Error(
-              "Could not detect repository. Pass owner and repo, or run inside a git repo with a remote, or set owner/repo in OPENCODE_ISSUE_CONFIG."
+              "Could not detect repository. The current directory is not a git repository with a remote. Ask the user which owner/repo to use (or have them set it in OPENCODE_ISSUE_CONFIG), then call this tool again with owner and repo."
             )
           }
           const { owner, repo, platform } = repoInfo

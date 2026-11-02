@@ -77,13 +77,17 @@ OpenCode caches the compiled plugin module in the server process. Editing `src/i
 
 ## Usage
 
-Just ask the agent in plain language:
+Just talk to the agent normally — the tool's description tells it to fire on any "create/prepare an issue" request, in Russian or English:
 
 > создай ишью: заголовок "Утечка памяти в кэше", описание "шаги воспроизведения: ..."
 
-Or address the tool explicitly when you need guarantees:
+> подготовь ишью про падение сборки
 
-> используй инструмент `issue_create` с title=…, body=…, preview=false
+> заведи тикет с метками `bug,urgent`
+
+You do **not** need to name the tool or use parameter syntax. If the repository cannot be detected, the agent will ask which `owner/repo` to use — answer it in the same natural way ("sporteka2/opencode-issue") and it will retry.
+
+To skip the preview step, say so in the request: «без превью» / "no preview".
 
 ### Tool parameters
 
@@ -158,6 +162,8 @@ The compiled output is ESM (`"type": "module"`).
 | Changes to `src/index.ts` seem ignored | The module is cached in the server process — restart the TUI instance. |
 | `opencode plugin list` prints `No plugins found` | Run it from your home directory; plugin discovery is working-directory relative. |
 | No repository detected | Pass `owner` / `repo`, run inside a git repository with a remote, or set them in `OPENCODE_ISSUE_CONFIG`. |
+| Agent writes the issue as text instead of creating it | Say «создай ишью …» rather than «подготовь»; the tool description includes the trigger phrases, but a vague "prepare a draft" can be read as a text request. |
+| Issue created without translation, no "Дубликаты" tab | The AI duplicate check failed silently. The model must resolve — check `ctx.model.default()` or set `checkModel` in `OPENCODE_ISSUE_CONFIG`. Provider timeouts show up as `ProviderRequestError: Timed out waiting for response headers` in the OpenCode log. |
 
 ## License
 
@@ -171,7 +177,7 @@ MIT
 
 **Установка:** `git clone` → `npm install` → `npm run build` → симлинк `~/.opencode/plugin/issue-creator.ts` на `src/index.ts`. Проверить: `opencode plugin list` из домашнего каталога.
 
-**Использование:** просто скажи агенту «создай ишью: заголовок ..., описание ...», либо явно «используй инструмент `issue_create`».
+**Использование:** просто скажи агенту «создай ишью: заголовок ..., описание ...» — синтаксис инструмента знать не нужно. Если репозиторий не определился, агент спросит какой (`sporteka2/opencode-issue`). Для пропуска превью добавь «без превью».
 
 **Настройка:** необязательна — `OPENCODE_ISSUE_CONFIG` (JSON) переопределяет дефолты: `duplicateCheck`, `checkClosed`, `checkModel` (если не задан — берётся текущая модель сессии), `previewLanguage: "ru"`, `submitLanguage: "en"`. Своя инструкция для проверки дубликатов — `<проект>/.opencode/instructions/issue-duplicate-check.md`.
 
